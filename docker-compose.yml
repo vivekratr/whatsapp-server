@@ -1,0 +1,11 @@
+services:
+  wa-scheduler:
+    build: .
+    container_name: wa-scheduler
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:2785}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
