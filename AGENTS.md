@@ -19,5 +19,8 @@
 - VPS deploy uses `OpenWA/docker-compose.vps.yml` (API + Postgres + Redis); minimal `.env` needs only `DATABASE_PASSWORD` and `CORS_ORIGINS` (no trailing slash); building `openwa-api` on VPS requires the full repo clone, not just Dockerfile + compose.
 - `docker-compose.vps.yml` forces postgres/redis/queue env vars so pasting `.env.example` sqlite/localhost settings does not break deploy; delete stale `/app/data/.env.generated` if the API still picks SQLite.
 - OpenWA has two TypeORM connections: `main` (SQLite boot DB for API keys/audit at `./data/main.sqlite`) and `data` (sessions/messages; Postgres on VPS when `DATABASE_TYPE=postgres`); production Docker image must `npm rebuild sqlite3` after `npm ci --ignore-scripts`.
-- Production OpenWA API is at `https://server.bhaktienterprises.co.in/openwa/api/`; locally `http://localhost:2785`. PWA calls same-origin `/api` (Vite proxy in dev, `vercel.json` rewrite on Vercel); optional `VITE_API_BASE` must end with `/api` if set. Do not set a bare `/openwa` URL on Vercel — it breaks routing and CORS.
+- Production OpenWA API is at `https://server.bhaktienterprises.co.in/openwa/api/` via Traefik (`PathPrefix(/openwa/api)` + strip `/openwa`); Nest serves `/api/*` internally. Locally `http://localhost:2785`.
+- PWA production builds must use same-origin `/api` only (`vercel.json` rewrites to VPS). Never set `VITE_API_BASE` to the VPS URL on Vercel — it causes CORS and wrong paths.
+- Mobile pairing hangs when OpenWA logs show `qr_generated` instead of `pairing_code_generated`; clear stale browser auth at `/app/data/sessions/session-{phone}` on the VPS and ensure mobile auth uses `startWithPhone` (passes `pairWithPhoneNumber`).
+- VPS OpenWA repo clone lives at `/opt/services/openwa/app/OpenWA` on `server.bhaktienterprises.co.in`.
 - A personal WhatsApp number maps to one OpenWA session; mobile JWT scopes scheduled-message access to that session.

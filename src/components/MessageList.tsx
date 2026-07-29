@@ -1,4 +1,5 @@
 import { scheduledApi, type ScheduledMessage, type ScheduledMessageStatus } from '../api/client';
+import { formatPhoneDisplay } from '../utils/contacts';
 
 interface MessageListProps {
   sessionId: string;
@@ -28,7 +29,7 @@ function messagePreview(msg: ScheduledMessage): string {
 }
 
 function formatRecipients(recipients: string[] | undefined, count: number): string {
-  if (recipients?.length) return recipients.join(', ');
+  if (recipients?.length) return recipients.map(formatPhoneDisplay).join(', ');
   return `${count} recipient${count !== 1 ? 's' : ''}`;
 }
 function statusLabel(status: ScheduledMessageStatus): string {

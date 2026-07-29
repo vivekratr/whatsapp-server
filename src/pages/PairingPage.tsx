@@ -97,6 +97,10 @@ export function PairingPage() {
       <div className="pairing-status">
         {status === 'ready' ? (
           <span className="status-connected">Connected</span>
+        ) : status === 'qr_ready' ? (
+          <span className="status-waiting" role="alert">
+            Server is in QR mode — tap below to retry with a pairing code.
+          </span>
         ) : (
           <span className="status-waiting">
             <span className="spinner" aria-hidden="true" />
@@ -108,7 +112,7 @@ export function PairingPage() {
       {error && <p className="error-text" role="alert">{error}</p>}
 
       <button className="btn-text" onClick={() => navigate('/login')}>
-        Use a different number
+        {status === 'qr_ready' ? 'Retry with pairing code' : 'Use a different number'}
       </button>
     </div>
   );

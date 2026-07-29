@@ -1,5 +1,14 @@
-const rawBase = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '');
-const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+function resolveApiBase(): string {
+  // Production always uses same-origin /api (Vercel rewrite → VPS). Avoids CORS and bad VITE_API_BASE on Vercel.
+  if (!import.meta.env.DEV) {
+    return '/api';
+  }
+
+  const rawBase = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '');
+  return rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+}
+
+const API_BASE = resolveApiBase();
 const TOKEN_KEY = 'wa_token';
 
 export type SessionStatus =
