@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://server.bhaktienterprises.co.in/openwa/api/:path*"
+    }
+  ]
+}
