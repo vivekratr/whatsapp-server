@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+const rawBase = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '');
+const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 const TOKEN_KEY = 'wa_token';
 
 export type SessionStatus =
