@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authApi, setToken } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
@@ -22,9 +22,12 @@ export function PairingPage() {
   const state = location.state as PairingState | null;
 
   const [sessionId] = useState(state?.sessionId ?? '');
+  const [phoneNumber] = useState(state?.phoneNumber ?? '');
   const [pairingCode, setPairingCode] = useState(state?.pairingCode ?? '');
   const [status, setStatus] = useState<string>('initializing');
   const [error, setError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const qrRetried = useRef(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -73,6 +76,39 @@ export function PairingPage() {
     };
   }, [sessionId, login, navigate]);
 
+  useEffect(() => {
+    if (status !== 'qr_ready' || !phoneNumber || qrRetried.current) return;
+
+    qrRetried.current = true;
+    let cancelled = false;
+    setRetrying(true);
+    setError(null);
+
+    void authApi
+      .start(phoneNumber)
+      .then(result => {
+        if (cancelled) return;
+        if (result.pairingCode) {
+          setPairingCode(result.pairingCode);
+        }
+        setStatus(result.status);
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to restart pairing');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setRetrying(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, phoneNumber]);
+
   if (!sessionId) return null;
 
   return (
@@ -98,8 +134,9 @@ export function PairingPage() {
         {status === 'ready' ? (
           <span className="status-connected">Connected</span>
         ) : status === 'qr_ready' ? (
-          <span className="status-waiting" role="alert">
-            Server is in QR mode — tap below to retry with a pairing code.
+          <span className="status-waiting">
+            <span className="spinner" aria-hidden="true" />
+            {retrying ? 'Switching to pairing code…' : 'Server is in QR mode — retrying…'}
           </span>
         ) : (
           <span className="status-waiting">
